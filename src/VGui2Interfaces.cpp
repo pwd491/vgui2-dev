@@ -19,15 +19,14 @@ If you modify this file, you may extend this exception to your
 version of the file, but you are not obligated to do so. If
 you do not wish to do so, delete this exception statement
 from your version.
-
 */
-
+#include <locale.h>
+#include <crtlib.h>
 #include "VGui2Interfaces.h"
 #include "KeyValues.h"
-#include <locale.h>
-#include <string.h>
 
 static IKeyValues *keyValuesInterface;
+static IFileSystem *fileSystemInterface;
 
 IKeyValues *keyvalues()
 {
@@ -36,145 +35,113 @@ IKeyValues *keyvalues()
 
 namespace vgui2
 {
-
 static IVGui *vguiInterface;
+static ILocalize *localizeInterface;
+static IPanel *panelInterface;
+static ISurface *surfaceInterface;
+static ISchemeManager *schemeManagerInterface;
+static ISystem *systemInterface;
+static IInput *inputInterface;
+static IInputInternal *inputInternalInterface;
+static char moduleName[256];
 
 IVGui *ivgui()
 {
 	return vguiInterface;
 }
 
-static ILocalize *localizeInterface;
-
 ILocalize *localize()
 {
 	return localizeInterface;
 }
-
-static IFileSystem *fileSystemInterface;
 
 IFileSystem *filesystem()
 {
 	return fileSystemInterface;
 }
 
-static IPanel *panelInterface;
-
 IPanel *ipanel()
 {
 	return panelInterface;
 }
-
-static ISurface *surfaceInterface;
 
 ISurface *surface()
 {
 	return surfaceInterface;
 }
 
-static ISchemeManager *schemeManagerInterface;
-
 ISchemeManager *scheme()
 {
 	return schemeManagerInterface;
 }
-
-static ISystem *systemInterface;
 
 ISystem *system()
 {
 	return systemInterface;
 }
 
-static IInput *inputInterface;
-
 IInput *input()
 {
 	return inputInterface;
 }
-
-static IInputInternal *inputInternalInterface;
 
 IInputInternal *inputinternal()
 {
 	return inputInternalInterface;
 }
 
-static char moduleName[256];
-
 bool InitializeVGui2Interfaces( const char *_moduleName, CreateInterfaceFn *factories, int factoryCount )
 {
-	strncpy( moduleName, _moduleName, sizeof( moduleName ) );
-	moduleName[sizeof( moduleName ) - 1] = '\0';
+	Q_strncpy( moduleName, _moduleName, sizeof( moduleName ));
 
 	setlocale( LC_ALL, "" );
 	setlocale( LC_CTYPE, "" );
 	setlocale( LC_MONETARY, "" );
 	setlocale( LC_NUMERIC, "" );
 
-	if ( factoryCount <= 0 )
+	struct
 	{
-		keyValuesInterface = nullptr;
-		vguiInterface = nullptr;
-		localizeInterface = nullptr;
-		fileSystemInterface = nullptr;
-		panelInterface = nullptr;
-		surfaceInterface = nullptr;
-		schemeManagerInterface = nullptr;
-		systemInterface = nullptr;
-		inputInterface = nullptr;
-		inputInternalInterface = nullptr;
+		void **ptr;
+		const char *iface;
+	} interfaces[] =
+	{
+	{ (void **)&keyValuesInterface, KEYVALUES_INTERFACE_VERSION },
+	{ (void **)&vguiInterface, VGUI_IVGUI_INTERFACE_VERSION },
+	{ (void **)&localizeInterface, VGUI_LOCALIZE_INTERFACE_VERSION },
+	{ (void **)&fileSystemInterface, FILESYSTEM_INTERFACE_VERSION },
+	{ (void **)&panelInterface, VGUI_PANEL_INTERFACE_VERSION },
+	{ (void **)&surfaceInterface, VGUI_SURFACE_INTERFACE_VERSION },
+	{ (void **)&schemeManagerInterface, VGUI_SCHEME_INTERFACE_VERSION },
+	{ (void **)&systemInterface, VGUI_SYSTEM_INTERFACE_VERSION },
+	{ (void **)&inputInterface, VGUI_INPUT_INTERFACE_VERSION },
+	{ (void **)&inputInternalInterface, VGUI_INPUT_INTERFACE_VERSION },
+	};
+
+	if( factoryCount <= 0 )
+	{
+		for( int i = 0; i < sizeof( interfaces ) / sizeof( interfaces[0] ); i++ )
+			*interfaces[i].ptr = nullptr;
 
 		return false;
 	}
 
-	for ( int i = 0; i < factoryCount; ++i )
+	for( int i = 0; i < factoryCount; ++i )
 	{
-		if ( keyValuesInterface == nullptr )
-			keyValuesInterface = (IKeyValues *)factories[i]( KEYVALUES_INTERFACE_VERSION, nullptr );
-
-		if ( vguiInterface == nullptr )
-			vguiInterface = (IVGui *)factories[i]( VGUI_IVGUI_INTERFACE_VERSION, nullptr );
-
-		if ( localizeInterface == nullptr )
-			localizeInterface = (ILocalize *)factories[i]( VGUI_LOCALIZE_INTERFACE_VERSION, nullptr );
-
-		if ( fileSystemInterface == nullptr )
-			fileSystemInterface = (IFileSystem *)factories[i]( "VFileSystem009", nullptr );
-
-		if ( panelInterface == nullptr )
-			panelInterface = (IPanel *)factories[i]( VGUI_PANEL_INTERFACE_VERSION, nullptr );
-
-		if ( surfaceInterface == nullptr )
-			surfaceInterface = (ISurface *)factories[i]( VGUI_SURFACE_INTERFACE_VERSION, nullptr );
-
-		if ( schemeManagerInterface == nullptr )
-			schemeManagerInterface = (ISchemeManager *)factories[i]( VGUI_SCHEME_INTERFACE_VERSION, nullptr );
-
-		if ( systemInterface == nullptr )
-			systemInterface = (ISystem *)factories[i]( VGUI_SYSTEM_INTERFACE_VERSION, nullptr );
-
-		if ( inputInterface == nullptr )
-			inputInterface = (IInput *)factories[i]( VGUI_INPUT_INTERFACE_VERSION, nullptr );
-
-		if ( inputInternalInterface == nullptr )
-			inputInternalInterface = (IInputInternal *)factories[i]( VGUI_INPUTINTERNAL_INTERFACE_VERSION, nullptr );
+		for( int j = 0; j < sizeof( interfaces ) / sizeof( interfaces[0] ); j++ )
+		{
+			if( *interfaces[j].ptr == nullptr )
+				*interfaces[j].ptr = factories[i]( interfaces[j].iface, nullptr );
+		}
 	}
 
-	if ( keyValuesInterface == nullptr ||
-		 vguiInterface == nullptr ||
-		 localizeInterface == nullptr ||
-		 fileSystemInterface == nullptr ||
-		 panelInterface == nullptr ||
-		 surfaceInterface == nullptr ||
-		 schemeManagerInterface == nullptr ||
-		 systemInterface == nullptr ||
-		 inputInterface == nullptr ||
-		 inputInternalInterface == nullptr )
-		return false;
+	for( int i = 0; i < sizeof( interfaces ) / sizeof( interfaces[0] ); i++ )
+	{
+		if( *interfaces[i].ptr == nullptr )
+			return false;
+	}
 
 	vguiInterface->Init( factories, factoryCount );
-	keyValuesInterface->RegisterSizeofKeyValues( sizeof( KeyValues ) );
+	keyValuesInterface->RegisterSizeofKeyValues( sizeof( KeyValues ));
 
 	return true;
 }
@@ -183,5 +150,4 @@ const char *GetModuleName()
 {
 	return moduleName;
 }
-
 } // namespace vgui2
