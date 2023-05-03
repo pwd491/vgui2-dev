@@ -22,6 +22,7 @@ from your version.
 
 */
 
+#include <crtlib.h>
 #include "KeyValues.h"
 #include "VGui2Interfaces.h"
 #include <inttypes.h>
@@ -31,7 +32,7 @@ from your version.
 #include <wchar.h>
 
 #ifndef ARRAYSIZE
-#define ARRAYSIZE( x ) ( sizeof( x ) / sizeof( *( x ) ) )
+#define ARRAYSIZE( x ) ( sizeof( x ) / sizeof( *( x )))
 #endif // ARRAYSIZE
 
 KeyValues::KeyValues( const char *name )
@@ -76,13 +77,13 @@ KeyValues::~KeyValues()
 	KeyValues *dat;
 	KeyValues *datNext = nullptr;
 
-	for ( dat = m_pSub; dat != nullptr; dat = datNext )
+	for( dat = m_pSub; dat != nullptr; dat = datNext )
 	{
 		datNext = dat->m_pPeer;
 		delete dat;
 	}
 
-	for ( dat = m_pPeer; dat && dat != this; dat = datNext )
+	for( dat = m_pPeer; dat && dat != this; dat = datNext )
 	{
 		datNext = dat->m_pPeer;
 		delete dat;
@@ -105,7 +106,7 @@ void KeyValues::Init( const char *name )
 
 void KeyValues::AllocateValueBlock( int iAllocSize )
 {
-	if ( iAllocSize <= sizeof( KeyValues ) )
+	if( iAllocSize <= sizeof( KeyValues ))
 		m_sValue = (char *)keyvalues()->AllocKeyValuesMemory( iAllocSize );
 	else
 		m_sValue = new char[iAllocSize];
@@ -115,12 +116,12 @@ void KeyValues::AllocateValueBlock( int iAllocSize )
 
 void KeyValues::FreeAllocatedValue()
 {
-	if ( m_iAllocationSize == 0 )
+	if( m_iAllocationSize == 0 )
 		return;
 
-	if ( m_iAllocationSize <= sizeof( KeyValues ) )
+	if( m_iAllocationSize <= sizeof( KeyValues ))
 		keyvalues()->FreeKeyValuesMemory( m_sValue );
-	else if ( m_sValue != nullptr )
+	else if( m_sValue != nullptr )
 		delete[] m_sValue;
 
 	m_sValue = nullptr;
@@ -149,14 +150,14 @@ bool KeyValues::SaveToFile( IFileSystem *filesystem, const char *resourceName, c
 
 KeyValues *KeyValues::FindKey( const char *keyName, bool bCreate )
 {
-	if ( keyName == nullptr || *keyName == '\0' )
+	if( keyName == nullptr || *keyName == '\0' )
 		return this;
 
 	char buf[256];
 	const char *subStr = strchr( keyName, '/' );
 	const char *searchStr = keyName;
 
-	if ( subStr != nullptr )
+	if( subStr != nullptr )
 	{
 		int size = subStr - keyName;
 		memcpy( buf, keyName, size );
@@ -168,22 +169,22 @@ KeyValues *KeyValues::FindKey( const char *keyName, bool bCreate )
 
 	KeyValues *lastItem = nullptr;
 	KeyValues *dat;
-	for ( dat = m_pSub; dat != NULL; dat = dat->m_pPeer )
+	for( dat = m_pSub; dat != NULL; dat = dat->m_pPeer )
 	{
 		lastItem = dat;
 
-		if ( dat->m_iKeyName == searchSymbol )
+		if( dat->m_iKeyName == searchSymbol )
 			break;
 	}
 
-	if ( dat != nullptr )
+	if( dat != nullptr )
 	{
-		if ( !bCreate )
+		if( !bCreate )
 			return nullptr;
 
 		dat = new KeyValues( searchStr );
 
-		if ( lastItem != nullptr )
+		if( lastItem != nullptr )
 			lastItem->m_pPeer = dat;
 		else
 			m_pSub = dat;
@@ -191,7 +192,7 @@ KeyValues *KeyValues::FindKey( const char *keyName, bool bCreate )
 		m_iDataType = TYPE_NONE;
 	}
 
-	if ( subStr != nullptr )
+	if( subStr != nullptr )
 		dat->FindKey( subStr + 1, bCreate );
 
 	return dat;
@@ -199,9 +200,9 @@ KeyValues *KeyValues::FindKey( const char *keyName, bool bCreate )
 
 KeyValues *KeyValues::FindKey( int keySymbol ) const
 {
-	for ( auto dat = m_pSub; dat != nullptr; dat = dat->m_pPeer )
+	for( auto dat = m_pSub; dat != nullptr; dat = dat->m_pPeer )
 	{
-		if ( dat->m_iKeyName == keySymbol )
+		if( dat->m_iKeyName == keySymbol )
 			return dat;
 	}
 	return nullptr;
@@ -211,24 +212,24 @@ KeyValues *KeyValues::CreateNewKey()
 {
 	int newID = 1;
 
-	for ( auto dat = m_pSub; dat != nullptr; dat = dat->m_pPeer )
+	for( auto dat = m_pSub; dat != nullptr; dat = dat->m_pPeer )
 	{
-		int val = atoi( dat->GetName() );
-		if ( newID <= val )
+		int val = atoi( dat->GetName());
+		if( newID <= val )
 			newID = val + 1;
 	}
 
 	char buf[12];
-	snprintf( buf, sizeof( buf ), "%d", newID );
+	Q_snprintf( buf, sizeof( buf ), "%d", newID );
 	return FindKey( buf, true );
 }
 
 void KeyValues::RemoveSubKey( KeyValues *subKey )
 {
-	if ( subKey == nullptr )
+	if( subKey == nullptr )
 		return;
 
-	if ( m_pSub == subKey )
+	if( m_pSub == subKey )
 	{
 		m_pSub = subKey->m_pPeer;
 		subKey->m_pPeer = nullptr;
@@ -236,9 +237,9 @@ void KeyValues::RemoveSubKey( KeyValues *subKey )
 	}
 
 	KeyValues *kv = m_pSub;
-	for ( auto kv = m_pSub; kv->m_pPeer != nullptr; kv = kv->m_pPeer )
+	for( auto kv = m_pSub; kv->m_pPeer != nullptr; kv = kv->m_pPeer )
 	{
-		if ( kv->m_pPeer == subKey )
+		if( kv->m_pPeer == subKey )
 		{
 			kv->m_pPeer = subKey->m_pPeer;
 			break;
@@ -261,15 +262,15 @@ KeyValues *KeyValues::GetNextKey()
 int KeyValues::GetInt( const char *keyName, int defaultValue )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return defaultValue;
 
-	switch ( dat->m_iDataType )
+	switch( dat->m_iDataType )
 	{
 	case TYPE_STRING:
 		return atoi( dat->m_sValue );
 	case TYPE_WSTRING:
-		return wcstol( (wchar_t *)dat->m_sValue, NULL, 10 );
+		return wcstol((wchar_t *)dat->m_sValue, NULL, 10 );
 	case TYPE_FLOAT:
 		return (int)dat->m_flValue;
 	case TYPE_UINT64:
@@ -282,10 +283,10 @@ int KeyValues::GetInt( const char *keyName, int defaultValue )
 float KeyValues::GetFloat( const char *keyName, float defaultValue )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return defaultValue;
 
-	switch ( dat->m_iDataType )
+	switch( dat->m_iDataType )
 	{
 	case TYPE_STRING:
 		return (float)atof( dat->m_sValue );
@@ -294,7 +295,7 @@ float KeyValues::GetFloat( const char *keyName, float defaultValue )
 	case TYPE_INT:
 		return (float)dat->m_iValue;
 	case TYPE_UINT64:
-		return (float)( *( (uint64_t *)dat->m_sValue ) );
+		return (float)( *((uint64_t *)dat->m_sValue ));
 	};
 
 	return 0.0f;
@@ -303,27 +304,27 @@ float KeyValues::GetFloat( const char *keyName, float defaultValue )
 const char *KeyValues::GetString( const char *keyName, const char *defaultValue )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return defaultValue;
 
 	char buf[64];
-	switch ( dat->m_iDataType )
+	switch( dat->m_iDataType )
 	{
 	case TYPE_FLOAT:
-		snprintf( buf, sizeof( buf ), "%f", dat->m_flValue );
+		Q_snprintf( buf, sizeof( buf ), "%f", dat->m_flValue );
 		SetString( keyName, buf );
 		break;
 	case TYPE_INT:
 	case TYPE_PTR:
-		snprintf( buf, sizeof( buf ), "%d", dat->m_iValue );
+		Q_snprintf( buf, sizeof( buf ), "%d", dat->m_iValue );
 		SetString( keyName, buf );
 		break;
 	case TYPE_UINT64:
-		snprintf( buf, sizeof( buf ), "%I64i", *( (uint64_t *)( dat->m_sValue ) ) );
+		Q_snprintf( buf, sizeof( buf ), "%I64i", *((uint64_t *)( dat->m_sValue )));
 		SetString( keyName, buf );
 		break;
 	case TYPE_WSTRING:
-		keyvalues()->GetANSIFromLocalized( (wchar_t *)dat->m_sValue, buf, sizeof( buf ) );
+		keyvalues()->GetANSIFromLocalized((wchar_t *)dat->m_sValue, buf, sizeof( buf ));
 		SetString( keyName, buf );
 		break;
 	case TYPE_STRING:
@@ -336,11 +337,11 @@ const char *KeyValues::GetString( const char *keyName, const char *defaultValue 
 const wchar_t *KeyValues::GetWString( const char *keyName, const wchar_t *defaultValue )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return defaultValue;
 
 	wchar_t wbuf[64];
-	switch ( dat->m_iDataType )
+	switch( dat->m_iDataType )
 	{
 	case TYPE_FLOAT:
 		swprintf( wbuf, ARRAYSIZE( wbuf ), L"%f", dat->m_flValue );
@@ -352,11 +353,11 @@ const wchar_t *KeyValues::GetWString( const char *keyName, const wchar_t *defaul
 		SetWString( keyName, wbuf );
 		break;
 	case TYPE_UINT64:
-		swprintf( wbuf, ARRAYSIZE( wbuf ), L"%I64i", *( (uint64_t *)( dat->m_sValue ) ) );
+		swprintf( wbuf, ARRAYSIZE( wbuf ), L"%I64i", *((uint64_t *)( dat->m_sValue )));
 		SetWString( keyName, wbuf );
 		break;
 	case TYPE_STRING:
-		keyvalues()->GetLocalizedFromANSI( dat->m_sValue, wbuf, sizeof( wbuf ) );
+		keyvalues()->GetLocalizedFromANSI( dat->m_sValue, wbuf, sizeof( wbuf ));
 		SetWString( keyName, wbuf );
 		break;
 	case TYPE_WSTRING:
@@ -369,7 +370,7 @@ const wchar_t *KeyValues::GetWString( const char *keyName, const wchar_t *defaul
 void *KeyValues::GetPtr( const char *keyName, void *defaultValue )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return defaultValue;
 	return dat->m_iDataType == TYPE_PTR ? dat->m_pValue : nullptr;
 }
@@ -377,9 +378,9 @@ void *KeyValues::GetPtr( const char *keyName, void *defaultValue )
 bool KeyValues::IsEmpty( const char *keyName )
 {
 	auto dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return true;
-	if ( dat->m_iDataType == TYPE_NONE )
+	if( dat->m_iDataType == TYPE_NONE )
 		return m_pSub == nullptr;
 	return false;
 }
@@ -387,12 +388,12 @@ bool KeyValues::IsEmpty( const char *keyName )
 void KeyValues::SetWString( const char *keyName, const wchar_t *value )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return;
 
 	dat->FreeAllocatedValue();
 
-	if ( value == nullptr )
+	if( value == nullptr )
 		value = L"";
 
 	int allocSize = ( wcslen( value ) + 1 ) * sizeof( wchar_t );
@@ -404,15 +405,15 @@ void KeyValues::SetWString( const char *keyName, const wchar_t *value )
 void KeyValues::SetString( const char *keyName, const char *value )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return;
 
 	dat->FreeAllocatedValue();
 
-	if ( value == nullptr )
+	if( value == nullptr )
 		value = "";
 
-	int allocSize = ( strlen( value ) + 1 ) * sizeof( char );
+	int allocSize = ( Q_strlen( value ) + 1 ) * sizeof( char );
 	dat->AllocateValueBlock( allocSize );
 	memcpy( dat->m_sValue, value, allocSize );
 	dat->m_iDataType = TYPE_STRING;
@@ -421,7 +422,7 @@ void KeyValues::SetString( const char *keyName, const char *value )
 void KeyValues::SetInt( const char *keyName, int value )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return;
 
 	dat->FreeAllocatedValue();
@@ -432,7 +433,7 @@ void KeyValues::SetInt( const char *keyName, int value )
 void KeyValues::SetFloat( const char *keyName, float value )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return;
 
 	dat->FreeAllocatedValue();
@@ -443,7 +444,7 @@ void KeyValues::SetFloat( const char *keyName, float value )
 void KeyValues::SetPtr( const char *keyName, void *value )
 {
 	KeyValues *dat = FindKey( keyName, false );
-	if ( dat == nullptr )
+	if( dat == nullptr )
 		return;
 
 	dat->FreeAllocatedValue();
@@ -453,23 +454,23 @@ void KeyValues::SetPtr( const char *keyName, void *value )
 
 KeyValues *KeyValues::MakeCopy() const
 {
-	KeyValues *newKeyValue = new KeyValues( GetName() );
+	KeyValues *newKeyValue = new KeyValues( GetName());
 	newKeyValue->m_iDataType = m_iDataType;
 
-	switch ( m_iDataType )
+	switch( m_iDataType )
 	{
 	case TYPE_STRING:
-		if ( m_sValue != nullptr )
+		if( m_sValue != nullptr )
 		{
-			int allocSize = ( strlen( m_sValue ) + 1 ) * sizeof( char );
+			int allocSize = ( Q_strlen( m_sValue ) + 1 ) * sizeof( char );
 			newKeyValue->AllocateValueBlock( allocSize );
 			memcpy( newKeyValue->m_sValue, m_sValue, allocSize );
 		}
 		break;
 	case TYPE_WSTRING:
-		if ( m_sValue != nullptr )
+		if( m_sValue != nullptr )
 		{
-			int allocSize = ( wcslen( (wchar_t *)m_sValue ) + 1 ) * sizeof( wchar_t );
+			int allocSize = ( wcslen((wchar_t *)m_sValue ) + 1 ) * sizeof( wchar_t );
 			newKeyValue->AllocateValueBlock( allocSize );
 			memcpy( newKeyValue->m_sValue, m_sValue, allocSize );
 		}
@@ -490,17 +491,17 @@ KeyValues *KeyValues::MakeCopy() const
 		newKeyValue->m_Color[3] = m_Color[3];
 		break;
 	case TYPE_UINT64:
-		newKeyValue->AllocateValueBlock( sizeof( uint64_t ) );
-		memcpy( newKeyValue->m_sValue, m_sValue, sizeof( uint64_t ) );
+		newKeyValue->AllocateValueBlock( sizeof( uint64_t ));
+		memcpy( newKeyValue->m_sValue, m_sValue, sizeof( uint64_t ));
 		break;
 	}
 
 	KeyValues *pPrev = nullptr;
-	for ( KeyValues *sub = m_pSub; sub != nullptr; sub = sub->m_pPeer )
+	for( KeyValues *sub = m_pSub; sub != nullptr; sub = sub->m_pPeer )
 	{
 		KeyValues *dat = sub->MakeCopy();
 
-		if ( pPrev )
+		if( pPrev )
 			pPrev->m_pPeer = dat;
 		else
 			newKeyValue->m_pSub = dat;

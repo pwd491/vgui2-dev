@@ -22,11 +22,11 @@ from your version.
 
 */
 
+#include <crtlib.h>
 #include "Panel.h"
 #include "Cursor.h"
 #include "KeyValues.h"
 #include "VGui2Interfaces.h"
-#include <string.h>
 
 namespace vgui2
 {
@@ -63,16 +63,16 @@ Panel::~Panel()
 	autoDelete = false;
 	SetParent( NULL );
 
-	while ( ipanel()->GetChildCount( vpanel ) > 0 )
+	while( ipanel()->GetChildCount( vpanel ) > 0 )
 	{
 		VPANEL child = ipanel()->GetChild( vpanel, 0 );
-		if ( ipanel()->IsAutoDeleteSet( child ) )
+		if( ipanel()->IsAutoDeleteSet( child ))
 			ipanel()->DeletePanel( child );
 		else
 			ipanel()->SetParent( child, NULL );
 	}
 
-	if ( name != nullptr )
+	if( name != nullptr )
 	{
 		delete[] name;
 		name = nullptr;
@@ -114,9 +114,9 @@ VPANEL Panel::GetVPanel()
 
 void Panel::Think()
 {
-	if ( IsVisible() )
+	if( IsVisible())
 	{
-		if ( needsLayout )
+		if( needsLayout )
 			InternalPerformLayout();
 	}
 
@@ -125,20 +125,20 @@ void Panel::Think()
 
 void Panel::PerformApplySchemeSettings()
 {
-	if ( !needsSchemeUpdate )
+	if( !needsSchemeUpdate )
 		return;
 
-	IScheme *pScheme = vgui2::scheme()->GetIScheme( GetScheme() );
-	if ( pScheme != nullptr )
+	IScheme *pScheme = vgui2::scheme()->GetIScheme( GetScheme());
+	if( pScheme != nullptr )
 		ApplySchemeSettings( pScheme );
 }
 
 void Panel::PaintTraverse( bool repaint, bool allowForce )
 {
-	if ( !IsVisible() )
+	if( !IsVisible())
 		return;
 
-	if ( !repaint && allowForce && needsRepaint )
+	if( !repaint && allowForce && needsRepaint )
 	{
 		repaint = true;
 		needsRepaint = false;
@@ -148,19 +148,19 @@ void Panel::PaintTraverse( bool repaint, bool allowForce )
 
 	int clipRect[4];
 	ipanel()->GetClipRect( vpanel, clipRect[0], clipRect[1], clipRect[2], clipRect[3] );
-	if ( ( clipRect[2] <= clipRect[0] ) || ( clipRect[3] <= clipRect[1] ) )
+	if(( clipRect[2] <= clipRect[0] ) || ( clipRect[3] <= clipRect[1] ))
 		repaint = false;
 
-	if ( repaint )
+	if( repaint )
 	{
-		if ( paintBackgroundEnabled )
+		if( paintBackgroundEnabled )
 		{
 			surface()->PushMakeCurrent( vpanel, false );
 			PaintBackground();
 			surface()->PopMakeCurrent( vpanel );
 		}
 
-		if ( paintEnabled )
+		if( paintEnabled )
 		{
 			surface()->PushMakeCurrent( vpanel, true );
 			Paint();
@@ -173,30 +173,30 @@ void Panel::PaintTraverse( bool repaint, bool allowForce )
 		VPANEL child = ipanel()->GetChild( GetVPanel(), i );
 		bool bVisible = ipanel()->IsVisible( child );
 
-		if ( surface()->ShouldPaintChildPanel( child ) )
+		if( surface()->ShouldPaintChildPanel( child ))
 		{
-			if ( bVisible )
+			if( bVisible )
 				ipanel()->PaintTraverse( child, repaint, allowForce );
 		}
 		else
 		{
 			surface()->Invalidate( child );
 
-			if ( bVisible )
+			if( bVisible )
 				ipanel()->PaintTraverse( child, false, false );
 		}
 	}
 
-	if ( repaint )
+	if( repaint )
 	{
-		if ( paintBorderEnabled && border != nullptr )
+		if( paintBorderEnabled && border != nullptr )
 		{
 			surface()->PushMakeCurrent( vpanel, false );
 			PaintBorder();
 			surface()->PopMakeCurrent( vpanel );
 		}
 
-		if ( postChildPaintEnabled )
+		if( postChildPaintEnabled )
 		{
 			surface()->PushMakeCurrent( vpanel, false );
 			PostChildPaint();
@@ -210,53 +210,53 @@ void Panel::PaintTraverse( bool repaint, bool allowForce )
 void Panel::Repaint()
 {
 	needsRepaint = true;
-	surface()->Invalidate( GetVPanel() );
+	surface()->Invalidate( GetVPanel());
 }
 
 VPANEL Panel::IsWithinTraverse( int x, int y, bool traversePopups )
 {
-	if ( !IsVisible() || !IsMouseInputEnabled() )
+	if( !IsVisible() || !IsMouseInputEnabled())
 		return NULL;
 
-	if ( traversePopups )
+	if( traversePopups )
 	{
 		for ( int i = GetChildCount() - 1; i >= 0; i-- )
 		{
 			VPANEL panel = ipanel()->GetChild( GetVPanel(), i );
-			if ( !ipanel()->IsPopup( panel ) )
+			if( !ipanel()->IsPopup( panel ))
 				continue;
 
 			panel = ipanel()->IsWithinTraverse( panel, x, y, true );
-			if ( panel )
+			if( panel )
 				return panel;
 		}
 
 		for ( int i = GetChildCount() - 1; i >= 0; i-- )
 		{
 			VPANEL panel = ipanel()->GetChild( GetVPanel(), i );
-			if ( ipanel()->IsPopup( panel ) )
+			if( ipanel()->IsPopup( panel ))
 				continue;
 
 			panel = ipanel()->IsWithinTraverse( panel, x, y, true );
-			if ( panel )
+			if( panel )
 				return panel;
 		}
 
-		if ( IsWithin( x, y ) )
+		if( IsWithin( x, y ))
 			return GetVPanel();
 	}
 	else
 	{
-		if ( IsWithin( x, y ) )
+		if( IsWithin( x, y ))
 		{
 			for ( int i = GetChildCount() - 1; i >= 0; i-- )
 			{
 				VPANEL panel = ipanel()->GetChild( GetVPanel(), i );
-				if ( ipanel()->IsPopup( panel ) )
+				if( ipanel()->IsPopup( panel ))
 					continue;
 
 				panel = ipanel()->IsWithinTraverse( panel, x, y, false );
-				if ( panel )
+				if( panel )
 					return panel;
 			}
 
@@ -292,7 +292,7 @@ void Panel::InternalFocusChanged( bool lost )
 
 bool Panel::RequestInfo( KeyValues *outputData )
 {
-	if ( GetVParent() )
+	if( GetVParent())
 		return ipanel()->RequestInfo( GetVParent(), outputData );
 
 	return false;
@@ -305,16 +305,16 @@ void Panel::RequestFocus( int direction )
 
 bool Panel::RequestFocusPrev( VPANEL panel )
 {
-	if ( GetVParent() )
-		return ipanel()->RequestFocusPrev( GetVParent(), GetVPanel() );
+	if( GetVParent())
+		return ipanel()->RequestFocusPrev( GetVParent(), GetVPanel());
 
 	return false;
 }
 
 bool Panel::RequestFocusNext( VPANEL panel )
 {
-	if ( GetVParent() )
-		return ipanel()->RequestFocusNext( GetVParent(), GetVPanel() );
+	if( GetVParent())
+		return ipanel()->RequestFocusNext( GetVParent(), GetVPanel());
 
 	return false;
 }
@@ -324,55 +324,55 @@ void Panel::OnMessage( const KeyValues *params, VPANEL ifromPanel )
 	KeyValues *msg = params->MakeCopy();
 	const char *msgName = msg->GetName();
 
-	if ( !strcmp( msgName, "Repaint" ) )
+	if( !strcmp( msgName, "Repaint" ))
 		Repaint();
-	else if ( !strcmp( msgName, "Command" ) )
-		OnCommand( msg->GetString( "command", "" ) );
-	else if ( !strcmp( msgName, "MouseCaptureLost" ) )
+	else if( !strcmp( msgName, "Command" ))
+		OnCommand( msg->GetString( "command", "" ));
+	else if( !strcmp( msgName, "MouseCaptureLost" ))
 		OnMouseCaptureLost();
-	else if ( !strcmp( msgName, "SetFocus" ) )
+	else if( !strcmp( msgName, "SetFocus" ))
 		OnSetFocus();
-	else if ( !strcmp( msgName, "KillFocus" ) )
+	else if( !strcmp( msgName, "KillFocus" ))
 		OnKillFocus();
-	else if ( !strcmp( msgName, "Delete" ) )
+	else if( !strcmp( msgName, "Delete" ))
 		OnDelete();
-	else if ( !strcmp( msgName, "Tick" ) )
+	else if( !strcmp( msgName, "Tick" ))
 		OnTick();
-	else if ( !strcmp( msgName, "OnCursorMoved" ) )
-		OnCursorMoved( msg->GetInt( "x", 0 ), msg->GetInt( "y", 0 ) );
-	else if ( !strcmp( msgName, "OnMouseFocusTicked" ) )
+	else if( !strcmp( msgName, "OnCursorMoved" ))
+		OnCursorMoved( msg->GetInt( "x", 0 ), msg->GetInt( "y", 0 ));
+	else if( !strcmp( msgName, "OnMouseFocusTicked" ))
 		OnMouseFocusTicked();
-	else if ( !strcmp( msgName, "OnRequestFocus" ) )
-		OnRequestFocus( msg->GetInt( "subFocus", 0 ), msg->GetInt( "defaultPanel", 0 ) );
-	else if ( !strcmp( msgName, "CursorMoved" ) )
-		InternalCursorMoved( msg->GetInt( "xpos", 0 ), msg->GetInt( "ypos", 0 ) );
-	else if ( !strcmp( msgName, "CursorEntered" ) )
+	else if( !strcmp( msgName, "OnRequestFocus" ))
+		OnRequestFocus( msg->GetInt( "subFocus", 0 ), msg->GetInt( "defaultPanel", 0 ));
+	else if( !strcmp( msgName, "CursorMoved" ))
+		InternalCursorMoved( msg->GetInt( "xpos", 0 ), msg->GetInt( "ypos", 0 ));
+	else if( !strcmp( msgName, "CursorEntered" ))
 		InternalCursorEntered();
-	else if ( !strcmp( msgName, "CursorExited" ) )
+	else if( !strcmp( msgName, "CursorExited" ))
 		InternalCursorExited();
-	else if ( !strcmp( msgName, "MousePressed" ) )
-		InternalMousePressed( (vgui2::MouseCode)msg->GetInt( "code", 0 ) );
-	else if ( !strcmp( msgName, "MouseDoublePressed" ) )
-		InternalMouseDoublePressed( (vgui2::MouseCode)msg->GetInt( "code", 0 ) );
-	else if ( !strcmp( msgName, "MouseReleased" ) )
-		InternalMouseReleased( (vgui2::MouseCode)msg->GetInt( "code", 0 ) );
-	else if ( !strcmp( msgName, "MouseWheeled" ) )
-		InternalMouseWheeled( msg->GetInt( "delta", 0 ) );
-	else if ( !strcmp( msgName, "KeyCodePressed" ) )
-		InternalKeyCodePressed( (vgui2::KeyCode)msg->GetInt( "code", 0 ) );
-	else if ( !strcmp( msgName, "KeyCodeTyped" ) )
-		InternalKeyCodeTyped( (vgui2::KeyCode)msg->GetInt( "code", 0 ) );
-	else if ( !strcmp( msgName, "KeyTyped" ) )
-		InternalKeyTyped( msg->GetInt( "unichar", 0 ) );
-	else if ( !strcmp( msgName, "KeyCodeReleased" ) )
-		InternalKeyCodeReleased( (vgui2::KeyCode)msg->GetInt( "code", 0 ) );
-	else if ( !strcmp( msgName, "KeyFocusTicked" ) )
+	else if( !strcmp( msgName, "MousePressed" ))
+		InternalMousePressed((vgui2::MouseCode)msg->GetInt( "code", 0 ));
+	else if( !strcmp( msgName, "MouseDoublePressed" ))
+		InternalMouseDoublePressed((vgui2::MouseCode)msg->GetInt( "code", 0 ));
+	else if( !strcmp( msgName, "MouseReleased" ))
+		InternalMouseReleased((vgui2::MouseCode)msg->GetInt( "code", 0 ));
+	else if( !strcmp( msgName, "MouseWheeled" ))
+		InternalMouseWheeled( msg->GetInt( "delta", 0 ));
+	else if( !strcmp( msgName, "KeyCodePressed" ))
+		InternalKeyCodePressed((vgui2::KeyCode)msg->GetInt( "code", 0 ));
+	else if( !strcmp( msgName, "KeyCodeTyped" ))
+		InternalKeyCodeTyped((vgui2::KeyCode)msg->GetInt( "code", 0 ));
+	else if( !strcmp( msgName, "KeyTyped" ))
+		InternalKeyTyped( msg->GetInt( "unichar", 0 ));
+	else if( !strcmp( msgName, "KeyCodeReleased" ))
+		InternalKeyCodeReleased((vgui2::KeyCode)msg->GetInt( "code", 0 ));
+	else if( !strcmp( msgName, "KeyFocusTicked" ))
 		InternalKeyFocusTicked();
-	else if ( !strcmp( msgName, "MouseFocusTicked" ) )
+	else if( !strcmp( msgName, "MouseFocusTicked" ))
 		InternalMouseFocusTicked();
-	else if ( !strcmp( msgName, "Invalidate" ) )
+	else if( !strcmp( msgName, "Invalidate" ))
 		InternalInvalidateLayout();
-	else if ( !strcmp( msgName, "Move" ) )
+	else if( !strcmp( msgName, "Move" ))
 		InternalMove();
 
 	msg->deleteThis();
@@ -390,7 +390,7 @@ int Panel::GetTabPosition()
 
 const char *Panel::GetName()
 {
-	if ( name != nullptr )
+	if( name != nullptr )
 		return name;
 
 	return "";
@@ -403,11 +403,11 @@ const char *Panel::GetClassName()
 
 HScheme Panel::GetScheme()
 {
-	if ( scheme != 0 )
+	if( scheme != 0 )
 		return scheme;
 
-	if ( GetVParent() )
-		return ipanel()->GetScheme( GetVParent() );
+	if( GetVParent())
+		return ipanel()->GetScheme( GetVParent());
 
 	return vgui2::scheme()->GetDefaultScheme();
 }
@@ -429,7 +429,7 @@ void Panel::DeletePanel()
 
 void *Panel::QueryInterface( EInterfaceID id )
 {
-	if ( id == ICLIENTPANEL_STANDARD_INTERFACE )
+	if( id == ICLIENTPANEL_STANDARD_INTERFACE )
 		return this;
 
 	return nullptr;
@@ -447,15 +447,15 @@ const char *Panel::GetModuleName()
 
 VPANEL Panel::GetVParent()
 {
-	return ipanel()->GetParent( GetVPanel() );
+	return ipanel()->GetParent( GetVPanel());
 }
 
 void Panel::CallParentFunction( KeyValues *message )
 {
-	if ( GetVParent() )
-		ipanel()->SendMessage( GetVParent(), message, GetVPanel() );
+	if( GetVParent())
+		ipanel()->SendMessage( GetVParent(), message, GetVPanel());
 
-	if ( message )
+	if( message )
 		message->deleteThis();
 }
 
@@ -463,37 +463,37 @@ void Panel::InvalidateLayout( bool layoutNow, bool reloadScheme )
 {
 	needsLayout = true;
 
-	if ( reloadScheme )
+	if( reloadScheme )
 	{
 		needsSchemeUpdate = true;
 
 		for ( int i = 0; i < GetChildCount(); i++ )
 		{
 			Panel *child = GetChild( i );
-			if ( child != nullptr )
+			if( child != nullptr )
 				child->InvalidateLayout( layoutNow, true );
 		}
 
 		PerformApplySchemeSettings();
 	}
 
-	if ( layoutNow )
+	if( layoutNow )
 		InternalPerformLayout();
 }
 
 int Panel::GetChildCount()
 {
-	return ipanel()->GetChildCount( GetVPanel() );
+	return ipanel()->GetChildCount( GetVPanel());
 }
 
 Panel *Panel::GetChild( int index )
 {
-	return ipanel()->GetPanel( ipanel()->GetChild( GetVPanel(), index ), vgui2::GetModuleName() );
+	return ipanel()->GetPanel( ipanel()->GetChild( GetVPanel(), index ), vgui2::GetModuleName());
 }
 
 void Panel::InternalPerformLayout()
 {
-	if ( needsSchemeUpdate )
+	if( needsSchemeUpdate )
 		return;
 
 	inPerformLayout = true;
@@ -508,17 +508,17 @@ void Panel::PerformLayout()
 
 bool Panel::IsVisible()
 {
-	return ipanel()->IsVisible( GetVPanel() );
+	return ipanel()->IsVisible( GetVPanel());
 }
 
 bool Panel::IsMouseInputEnabled()
 {
-	return ipanel()->IsMouseInputEnabled( GetVPanel() );
+	return ipanel()->IsMouseInputEnabled( GetVPanel());
 }
 
 bool Panel::IsKeyBoardInputEnabled()
 {
-	return ipanel()->IsKeyBoardInputEnabled( GetVPanel() );
+	return ipanel()->IsKeyBoardInputEnabled( GetVPanel());
 }
 
 bool Panel::IsWithin( int x, int y )
@@ -526,16 +526,16 @@ bool Panel::IsWithin( int x, int y )
 	int clipRect[4];
 	ipanel()->GetClipRect( GetVPanel(), clipRect[0], clipRect[1], clipRect[2], clipRect[3] );
 
-	if ( x < clipRect[0] )
+	if( x < clipRect[0] )
 		return false;
 
-	if ( y < clipRect[1] )
+	if( y < clipRect[1] )
 		return false;
 
-	if ( x >= clipRect[2] )
+	if( x >= clipRect[2] )
 		return false;
 
-	if ( y >= clipRect[3] )
+	if( y >= clipRect[3] )
 		return false;
 
 	return true;
@@ -545,7 +545,7 @@ void Panel::PaintBackground()
 {
 	int wide, tall;
 	GetSize( wide, tall );
-	surface()->DrawSetColor( GetBgColor() );
+	surface()->DrawSetColor( GetBgColor());
 	surface()->DrawFilledRect( 0, 0, wide, tall );
 }
 
@@ -555,7 +555,7 @@ void Panel::Paint()
 
 void Panel::PaintBorder()
 {
-	border->Paint( GetVPanel() );
+	border->Paint( GetVPanel());
 }
 
 void Panel::PostChildPaint()
@@ -598,40 +598,40 @@ void Panel::ApplySchemeSettings( IScheme *pScheme )
 
 Color Panel::GetSchemeColor( const char *keyName, IScheme *pScheme )
 {
-	return pScheme->GetColor( keyName, Color( 255, 255, 255, 255 ) );
+	return pScheme->GetColor( keyName, Color( 255, 255, 255, 255 ));
 }
 
 void Panel::SetParent( Panel *parent )
 {
-	if ( parent == nullptr )
+	if( parent == nullptr )
 		ipanel()->SetParent( GetVPanel(), NULL );
 	else
-		ipanel()->SetParent( GetVPanel(), parent->GetVPanel() );
+		ipanel()->SetParent( GetVPanel(), parent->GetVPanel());
 }
 
 void Panel::SetScheme( HScheme _scheme )
 {
-	if ( scheme != _scheme )
+	if( scheme != _scheme )
 		scheme = _scheme;
 }
 
 void Panel::SetName( const char *_name )
 {
-	if ( name != nullptr && _name != nullptr && !strcmp( name, _name ) )
+	if( name != nullptr && _name != nullptr && !strcmp( name, _name ))
 		return;
 
-	if ( name != nullptr )
+	if( name != nullptr )
 	{
 		delete[] name;
 		name = NULL;
 	}
 
-	if ( _name != nullptr )
+	if( _name != nullptr )
 	{
-		int len = strlen( _name );
+		size_t len = Q_strlen( _name );
+
 		name = new char[len + 1];
-		strncpy( name, _name, len );
-		name[len] = '\0';
+		Q_strncpy( name, _name, len );
 	}
 }
 
@@ -668,17 +668,17 @@ void Panel::OnCursorMoved( int x, int y )
 
 void Panel::OnMouseFocusTicked()
 {
-	CallParentFunction( new KeyValues( "OnMouseFocusTicked" ) );
+	CallParentFunction( new KeyValues( "OnMouseFocusTicked" ));
 }
 
 void Panel::OnRequestFocus( VPANEL subFocus, VPANEL defaultPanel )
 {
-	CallParentFunction( new KeyValues( "OnRequestFocus", "subFocus", subFocus, "defaultPanel", defaultPanel ) );
+	CallParentFunction( new KeyValues( "OnRequestFocus", "subFocus", subFocus, "defaultPanel", defaultPanel ));
 }
 
 void Panel::InternalCursorMoved( int x, int y )
 {
-	if ( IsCursorNone() || !IsMouseInputEnabled() )
+	if( IsCursorNone() || !IsMouseInputEnabled())
 		return;
 
 	ScreenToLocal( x, y );
@@ -687,7 +687,7 @@ void Panel::InternalCursorMoved( int x, int y )
 
 void Panel::InternalCursorEntered()
 {
-	if ( IsCursorNone() || !IsMouseInputEnabled() )
+	if( IsCursorNone() || !IsMouseInputEnabled())
 		return;
 
 	OnCursorEntered();
@@ -695,7 +695,7 @@ void Panel::InternalCursorEntered()
 
 void Panel::InternalCursorExited()
 {
-	if ( IsCursorNone() || !IsMouseInputEnabled() )
+	if( IsCursorNone() || !IsMouseInputEnabled())
 		return;
 
 	OnCursorExited();
@@ -703,7 +703,7 @@ void Panel::InternalCursorExited()
 
 void Panel::InternalMousePressed( MouseCode code )
 {
-	if ( IsCursorNone() || !IsMouseInputEnabled() )
+	if( IsCursorNone() || !IsMouseInputEnabled())
 		return;
 
 	OnMousePressed( code );
@@ -711,7 +711,7 @@ void Panel::InternalMousePressed( MouseCode code )
 
 void Panel::InternalMouseDoublePressed( MouseCode code )
 {
-	if ( IsCursorNone() || !IsMouseInputEnabled() )
+	if( IsCursorNone() || !IsMouseInputEnabled())
 		return;
 
 	OnMouseDoublePressed( code );
@@ -719,7 +719,7 @@ void Panel::InternalMouseDoublePressed( MouseCode code )
 
 void Panel::InternalMouseReleased( MouseCode code )
 {
-	if ( IsCursorNone() || !IsMouseInputEnabled() )
+	if( IsCursorNone() || !IsMouseInputEnabled())
 		return;
 
 	OnMouseReleased( code );
@@ -727,7 +727,7 @@ void Panel::InternalMouseReleased( MouseCode code )
 
 void Panel::InternalMouseWheeled( int delta )
 {
-	if ( !IsMouseInputEnabled() )
+	if( !IsMouseInputEnabled())
 		return;
 
 	OnMouseWheeled( delta );
@@ -735,34 +735,34 @@ void Panel::InternalMouseWheeled( int delta )
 
 void Panel::InternalKeyCodePressed( KeyCode code )
 {
-	if ( IsKeyBoardInputEnabled() )
+	if( IsKeyBoardInputEnabled())
 		OnKeyCodePressed( code );
 	else
-		CallParentFunction( new KeyValues( "KeyCodePressed", "code", code ) );
+		CallParentFunction( new KeyValues( "KeyCodePressed", "code", code ));
 }
 
 void Panel::InternalKeyCodeTyped( KeyCode code )
 {
-	if ( IsKeyBoardInputEnabled() )
+	if( IsKeyBoardInputEnabled())
 		OnKeyCodeTyped( code );
 	else
-		CallParentFunction( new KeyValues( "KeyCodeTyped", "code", code ) );
+		CallParentFunction( new KeyValues( "KeyCodeTyped", "code", code ));
 }
 
 void Panel::InternalKeyTyped( int unichar )
 {
-	if ( IsKeyBoardInputEnabled() )
+	if( IsKeyBoardInputEnabled())
 		OnKeyTyped( unichar );
 	else
-		CallParentFunction( new KeyValues( "KeyTyped", "unichar", unichar ) );
+		CallParentFunction( new KeyValues( "KeyTyped", "unichar", unichar ));
 }
 
 void Panel::InternalKeyCodeReleased( KeyCode code )
 {
-	if ( IsKeyBoardInputEnabled() )
+	if( IsKeyBoardInputEnabled())
 		OnKeyCodeReleased( code );
 	else
-		CallParentFunction( new KeyValues( "KeyCodeReleased", "code", code ) );
+		CallParentFunction( new KeyValues( "KeyCodeReleased", "code", code ));
 }
 
 void Panel::InternalKeyFocusTicked()
@@ -835,23 +835,23 @@ void Panel::OnMouseReleased( MouseCode code )
 
 void Panel::OnMouseWheeled( int delta )
 {
-	CallParentFunction( new KeyValues( "MouseWheeled", "delta", delta ) );
+	CallParentFunction( new KeyValues( "MouseWheeled", "delta", delta ));
 }
 
 void Panel::OnKeyCodePressed( KeyCode code )
 {
-	CallParentFunction( new KeyValues( "KeyCodePressed", "code", code ) );
+	CallParentFunction( new KeyValues( "KeyCodePressed", "code", code ));
 }
 
 void Panel::OnKeyCodeTyped( KeyCode code )
 {
-	if ( code != KEY_TAB )
+	if( code != KEY_TAB )
 	{
-		CallParentFunction( new KeyValues( "KeyCodeTyped", "code", code ) );
+		CallParentFunction( new KeyValues( "KeyCodeTyped", "code", code ));
 		return;
 	}
 
-	if ( input()->IsKeyDown( KEY_LSHIFT ) || input()->IsKeyDown( KEY_RSHIFT ) )
+	if( input()->IsKeyDown( KEY_LSHIFT ) || input()->IsKeyDown( KEY_RSHIFT ))
 		RequestFocusPrev( NULL );
 	else
 		RequestFocusNext( NULL );
@@ -859,37 +859,37 @@ void Panel::OnKeyCodeTyped( KeyCode code )
 
 void Panel::OnKeyTyped( int unichar )
 {
-	CallParentFunction( new KeyValues( "KeyTyped", "unichar", unichar ) );
+	CallParentFunction( new KeyValues( "KeyTyped", "unichar", unichar ));
 }
 
 void Panel::OnKeyCodeReleased( KeyCode code )
 {
-	CallParentFunction( new KeyValues( "KeyCodeReleased", "code", code ) );
+	CallParentFunction( new KeyValues( "KeyCodeReleased", "code", code ));
 }
 
 void Panel::OnKeyFocusTicked()
 {
-	CallParentFunction( new KeyValues( "KeyFocusTicked" ) );
+	CallParentFunction( new KeyValues( "KeyFocusTicked" ));
 }
 
 void Panel::InternalSetCursor()
 {
 	bool visible = IsVisible();
-	if ( !visible )
+	if( !visible )
 		return;
 
 	VPANEL p = GetVParent();
-	while ( p )
+	while( p )
 	{
 		visible &= ipanel()->IsVisible( p );
 		p = ipanel()->GetParent( p );
 	}
 
-	if ( visible && HasParent( surface()->GetEmbeddedPanel() ) )
+	if( visible && HasParent( surface()->GetEmbeddedPanel()) )
 	{
 		HCursor cursor = GetCursor();
 
-		if ( input()->GetCursorOveride() )
+		if( input()->GetCursorOveride())
 			cursor = input()->GetCursorOveride();
 
 		surface()->SetCursor( cursor );
@@ -902,7 +902,7 @@ void Panel::OnMove()
 
 bool Panel::HasParent( VPANEL potentialParent )
 {
-	if ( !potentialParent )
+	if( !potentialParent )
 		return false;
 
 	return ipanel()->HasParent( GetVPanel(), potentialParent );
@@ -951,8 +951,8 @@ void Panel::SetZPos( int zpos )
 
 void Panel::SetScheme( const char *tag )
 {
-	if ( strlen( tag ) > 0 && vgui2::scheme()->GetScheme( tag ) )
-		SetScheme( vgui2::scheme()->GetScheme( tag ) );
+	if( Q_strlen( tag ) > 0 && vgui2::scheme()->GetScheme( tag ))
+		SetScheme( vgui2::scheme()->GetScheme( tag ));
 }
 
 } // namespace vgui2
