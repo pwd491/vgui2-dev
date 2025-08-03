@@ -160,6 +160,13 @@ public:
 	virtual void CreateBrowser( VPANEL panel, IHTMLResponses *pBrowser, bool bPopupWindow, const char *pchUserAgentIdentifier ) = 0;
 	virtual void RemoveBrowser( VPANEL panel, IHTMLResponses *pBrowser ) = 0;
 	virtual IHTMLChromeController *AccessChromeHTMLController() = 0;
+	virtual void DrawTexturedRectAdd( int x0, int y0, int x1, int y1 ) = 0;
+	virtual void SetSupportsEsc( bool bSupportsEsc ) = 0;
+	virtual int GetFontBlur( vgui2::HFont font ) = 0;
+	virtual bool IsAdditive( vgui2::HFont font ) = 0;
+	virtual void SetProportionalBase( int width, int height ) = 0;
+	virtual void GetHDProportionalBase( int &width, int &height ) = 0;
+	virtual void SetHDProportionalBase( int nWidth, int nHeight ) = 0;
 };
 
 #define VGUI_SURFACE_INTERFACE_VERSION "VGUI_Surface026"

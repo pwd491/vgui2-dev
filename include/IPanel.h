@@ -101,6 +101,8 @@ public:
 	virtual Panel *GetPanel( VPANEL vguiPanel, const char *destinationModule ) = 0;
 	virtual bool IsEnabled( VPANEL vguiPanel ) = 0;
 	virtual void SetEnabled( VPANEL vguiPanel, bool state ) = 0;
+	virtual IClientPanel* Client( VPANEL vguiPanel ) = 0;
+	virtual const char* GetModuleName( VPANEL vguiPanel ) = 0;
 };
 
 #define VGUI_PANEL_INTERFACE_VERSION "VGUI_Panel007"

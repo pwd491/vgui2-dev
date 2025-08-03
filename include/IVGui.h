@@ -37,7 +37,7 @@ namespace vgui2
 typedef unsigned long HPanel;
 typedef int HContext;
 
-class IVGui : public IBaseInterface, public IAppSystem
+class IVGui : public IBaseInterface
 {
 public:
 	virtual bool Init( CreateInterfaceFn *factoryList, int numFactories ) = 0;
